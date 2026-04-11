@@ -11,13 +11,13 @@
     "title": "Game Selection",
     "subtitle": "Choose a game to play",
     "snake": "Snake",
-    "snakeDesc": "Classic snake game - eat food and grow!",
+    "snakeDesc": "Example game 1!",
     "pong": "Pong",
-    "pongDesc": "Classic pong game - beat your opponent!",
+    "pongDesc": "Example game 2!",
     "cookbook": "Cookbook",
-    "cookbookDesc": "Delicious recipes and cooking tips!",
+    "cookbookDesc": "Cookbook description!",
     "oshikatsu": "Oshikatsu",
-    "oshikatsuDesc": "Support your favorite idols!",
+    "oshikatsuDesc": "Mana around the world!",
     "backButton": "Back to Home"
   },
   "snake": {
