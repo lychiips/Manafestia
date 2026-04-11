@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Hibachi Mana 2026 Birthday',
-  description: 'Fan project celebrating Hibachi Mana\'s birthday in 2026',
+  description: 'Fan project celebrating Hibachi Mana',
   generator: 'v0.app',
   icons: {
     icon: [
