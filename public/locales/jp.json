@@ -1,11 +1,11 @@
 {
   "landing": {
-    "title": "ミニゲームアーケード",
-    "subtitle": "言語を選んでプレイを始めよう！",
+    "title": "緋八マナ２０２６誕生日",
+    "subtitle": "お誕生日おめでとう！",
     "selectLanguage": "言語を選択",
     "english": "英語",
     "japanese": "日本語",
-    "startButton": "プレイ開始"
+    "startButton": "スタート"
   },
   "mainpage": {
     "title": "ゲーム選択",
