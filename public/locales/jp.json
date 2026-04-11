@@ -14,6 +14,10 @@
     "snakeDesc": "クラシックスネークゲーム - 食べて成長しよう！",
     "pong": "ポン",
     "pongDesc": "クラシックポンゲーム - 相手を倒そう！",
+    "cookbook": "クックブック",
+    "cookbookDesc": "おいしいレシピと料理のコツ！",
+    "oshikatsu": "推し活",
+    "oshikatsuDesc": "推しを応援しよう！",
     "backButton": "ホームに戻る"
   },
   "snake": {

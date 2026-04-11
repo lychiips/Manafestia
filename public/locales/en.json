@@ -14,6 +14,10 @@
     "snakeDesc": "Classic snake game - eat food and grow!",
     "pong": "Pong",
     "pongDesc": "Classic pong game - beat your opponent!",
+    "cookbook": "Cookbook",
+    "cookbookDesc": "Delicious recipes and cooking tips!",
+    "oshikatsu": "Oshikatsu",
+    "oshikatsuDesc": "Support your favorite idols!",
     "backButton": "Back to Home"
   },
   "snake": {
