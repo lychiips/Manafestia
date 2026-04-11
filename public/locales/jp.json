@@ -1,0 +1,43 @@
+{
+  "landing": {
+    "title": "ミニゲームアーケード",
+    "subtitle": "言語を選んでプレイを始めよう！",
+    "selectLanguage": "言語を選択",
+    "english": "英語",
+    "japanese": "日本語",
+    "startButton": "プレイ開始"
+  },
+  "mainpage": {
+    "title": "ゲーム選択",
+    "subtitle": "プレイするゲームを選んでください",
+    "snake": "スネーク",
+    "snakeDesc": "クラシックスネークゲーム - 食べて成長しよう！",
+    "pong": "ポン",
+    "pongDesc": "クラシックポンゲーム - 相手を倒そう！",
+    "backButton": "ホームに戻る"
+  },
+  "snake": {
+    "title": "スネークゲーム",
+    "score": "スコア",
+    "highScore": "ハイスコア",
+    "instructions": "矢印キーまたはWASDで移動",
+    "startGame": "ゲーム開始",
+    "gameOver": "ゲームオーバー！",
+    "playAgain": "もう一度プレイ",
+    "backToMenu": "メニューに戻る"
+  },
+  "pong": {
+    "title": "ポンゲーム",
+    "player1": "プレイヤー1",
+    "player2": "プレイヤー2 (AI)",
+    "instructions": "W/Sキーでパドルを操作",
+    "startGame": "ゲーム開始",
+    "pause": "一時停止",
+    "resume": "再開",
+    "gameOver": "ゲームオーバー！",
+    "winner": "勝者",
+    "playAgain": "もう一度プレイ",
+    "backToMenu": "メニューに戻る",
+    "score": "スコア"
+  }
+}

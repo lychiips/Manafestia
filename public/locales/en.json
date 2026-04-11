@@ -1,0 +1,43 @@
+{
+  "landing": {
+    "title": "Mini Games Arcade",
+    "subtitle": "Choose your language and start playing!",
+    "selectLanguage": "Select Language",
+    "english": "English",
+    "japanese": "Japanese",
+    "startButton": "Start Playing"
+  },
+  "mainpage": {
+    "title": "Game Selection",
+    "subtitle": "Choose a game to play",
+    "snake": "Snake",
+    "snakeDesc": "Classic snake game - eat food and grow!",
+    "pong": "Pong",
+    "pongDesc": "Classic pong game - beat your opponent!",
+    "backButton": "Back to Home"
+  },
+  "snake": {
+    "title": "Snake Game",
+    "score": "Score",
+    "highScore": "High Score",
+    "instructions": "Use arrow keys or WASD to move",
+    "startGame": "Start Game",
+    "gameOver": "Game Over!",
+    "playAgain": "Play Again",
+    "backToMenu": "Back to Menu"
+  },
+  "pong": {
+    "title": "Pong Game",
+    "player1": "Player 1",
+    "player2": "Player 2 (AI)",
+    "instructions": "Use W/S keys to move your paddle",
+    "startGame": "Start Game",
+    "pause": "Pause",
+    "resume": "Resume",
+    "gameOver": "Game Over!",
+    "winner": "Winner",
+    "playAgain": "Play Again",
+    "backToMenu": "Back to Menu",
+    "score": "Score"
+  }
+}
