@@ -5,6 +5,7 @@ import Link from "next/link"
 
 export default function MainPage() {
   const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const savedLang = localStorage.getItem("selectedLanguage") || "en"
@@ -30,12 +31,32 @@ export default function MainPage() {
       
       flatten(data)
       setTranslations(flatTranslations)
+      // Add a 5-second delay before hiding the loading screen
+      setTimeout(() => setLoading(false), 1000)
     } catch (error) {
       console.error("Failed to load translations:", error)
+      setLoading(false)
     }
   }
 
   const t = (key: string, fallback: string) => translations[key] || fallback
+
+  if (loading) {
+    return (
+      <div 
+        className="min-h-screen flex justify-center items-center text-white p-8"
+        style={{
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+        }}
+      >
+        <div className="text-center">
+          <div className="text-4xl mb-4">Loading...</div>
+          <div className="text-3xl mb-4">Insert transition gif here</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div 
