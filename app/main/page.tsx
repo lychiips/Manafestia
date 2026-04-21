@@ -46,6 +46,7 @@ export default function MainPage() {
       }}
     >
       <div className="text-center max-w-[800px] w-full">
+        <h1> The theme/design of this page is being decided by a vote in the Discord! </h1>
         <h1 
           className="text-4xl mb-2"
           style={{
@@ -72,7 +73,7 @@ export default function MainPage() {
           >
             <div className="text-6xl mb-4 text-[#4ade80]">🐍</div>
             <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.snake", "Snake")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.snakeDesc", "Classic snake game - eat food and grow!")}</p>
+            <p className="text-[#a0a0a0] text-sm">{t("mainpage.snakeDesc", "Example game 1!")}</p>
           </Link>
           
           <Link 
@@ -85,7 +86,7 @@ export default function MainPage() {
           >
             <div className="text-6xl mb-4 text-[#60a5fa]">🏓</div>
             <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.pong", "Pong")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.pongDesc", "Classic pong game - beat your opponent!")}</p>
+            <p className="text-[#a0a0a0] text-sm">{t("mainpage.pongDesc", "Example game 2!")}</p>
           </Link>
           
           <Link 
@@ -98,7 +99,7 @@ export default function MainPage() {
           >
             <div className="text-6xl mb-4 text-[#f97316]">📖</div>
             <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.cookbook", "Cookbook")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.cookbookDesc", "Delicious recipes and cooking tips!")}</p>
+            <p className="text-[#a0a0a0] text-sm">{t("mainpage.cookbookDesc", "Cookbook description!")}</p>
           </Link>
           
           <Link 
@@ -111,7 +112,7 @@ export default function MainPage() {
           >
             <div className="text-6xl mb-4 text-[#f472b6]">⭐</div>
             <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.oshikatsu", "Oshikatsu")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.oshikatsuDesc", "Support your favorite idols!")}</p>
+            <p className="text-[#a0a0a0] text-sm">{t("mainpage.oshikatsuDesc", "Mana around the world!")}</p>
           </Link>
         </div>
         
