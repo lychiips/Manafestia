@@ -106,7 +106,7 @@ export default function Home() {
         </div>
         
         <button
-          onClick={() => window.location.href = "/mainpage.html"}
+          onClick={() => window.location.href = "/main"}
           className="px-12 py-4 text-xl font-bold text-white border-none rounded-full cursor-pointer uppercase tracking-widest transition-all duration-300 hover:-translate-y-1"
           style={{
             background: "linear-gradient(90deg, #6fd9ff, #6fd9ff)",
