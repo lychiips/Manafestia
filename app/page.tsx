@@ -46,7 +46,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex justify-center items-center text-white font-sans"
-         style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
+         style={{ 
+           backgroundImage: "url('/images/manafestialoadingpage.png')",
+           backgroundSize: "cover",
+           backgroundPosition: "center",
+           backgroundRepeat: "no-repeat",
+           backgroundAttachment: "fixed"
+         }}>
       
       {/* Decorative circles */}
       <div className="fixed w-[200px] h-[200px] rounded-full -top-[100px] -left-[100px] -z-10"
