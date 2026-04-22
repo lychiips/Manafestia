@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import Link from "next/link"
+import GameLayout, { GameButton, ScoreDisplay, GameOverlay } from "@/components/game-layout"
 
 interface Position {
   x: number
@@ -64,7 +65,6 @@ export default function SnakePage() {
       setTranslationsLoaded(true)
     } catch (error) {
       console.error("Failed to load translations:", error)
-      // Fallback to English if loading fails
       setTranslationsLoaded(true)
     }
   }
@@ -276,70 +276,41 @@ export default function SnakePage() {
 
   if (!translationsLoaded) {
     return (
-      <div 
-        className="min-h-screen flex flex-col items-center justify-center text-white p-4"
-        style={{
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-        }}
+      <GameLayout
+        title="..."
+        description="Loading..."
+        accentColor="green"
       >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
           <p className="text-[#a0a0a0]">Loading...</p>
         </div>
-      </div>
+      </GameLayout>
     )
   }
 
   return (
-    <div 
-      className="min-h-screen flex flex-col items-center text-white p-4"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-      }}
+    <GameLayout
+      title={t("snake.title", "Snake Game")}
+      description={t("snake.instructions", "Use arrow keys or WASD to move")}
+      accentColor="green"
+      backLinkText={t("snake.backToMenu", "← Back to Menu")}
+      header={
+        <div className="flex gap-8">
+          <ScoreDisplay
+            label={t("snake.score", "Score")}
+            score={score}
+            color="#4ade80"
+          />
+          <ScoreDisplay
+            label={t("snake.highScore", "High Score")}
+            score={highScore}
+            color="#4ade80"
+          />
+        </div>
+      }
     >
-      <div className="text-center mb-4">
-        <h1 
-          className="text-3xl mb-2"
-          style={{
-            background: "linear-gradient(90deg, #4ade80, #22c55e)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}
-        >
-          {t("snake.title", "Snake Game")}
-        </h1>
-        <p className="text-[#a0a0a0] text-sm">
-          {t("snake.instructions", "Use arrow keys or WASD to move")}
-        </p>
-      </div>
-      
-      <div className="flex gap-8 mb-4">
-        <div 
-          className="px-6 py-3 rounded-[10px] text-center"
-          style={{ background: "rgba(255, 255, 255, 0.1)" }}
-        >
-          <div className="text-sm text-[#a0a0a0] mb-1">{t("snake.score", "Score")}</div>
-          <div className="text-2xl font-bold text-[#4ade80]">{score}</div>
-        </div>
-        <div 
-          className="px-6 py-3 rounded-[10px] text-center"
-          style={{ background: "rgba(255, 255, 255, 0.1)" }}
-        >
-          <div className="text-sm text-[#a0a0a0] mb-1">{t("snake.highScore", "High Score")}</div>
-          <div className="text-2xl font-bold text-[#4ade80]">{highScore}</div>
-        </div>
-      </div>
-      
-      <div 
-        className="relative p-4 rounded-[15px]"
-        style={{
-          background: "rgba(255, 255, 255, 0.05)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)"
-        }}
-      >
+      <div className="relative">
         <canvas 
           ref={canvasRef}
           width={400}
@@ -347,50 +318,27 @@ export default function SnakePage() {
           className="block rounded-[10px]"
         />
         
-        {gameState === "start" && (
-          <div 
-            className="absolute inset-0 flex flex-col justify-center items-center gap-4 rounded-[15px]"
-            style={{ background: "rgba(0, 0, 0, 0.8)" }}
-          >
-            <h2 className="text-3xl text-[#4ade80]">{t("snake.title", "Snake Game")}</h2>
-            <button 
-              onClick={startGame}
-              className="px-8 py-3 text-base bg-gradient-to-r from-[#4ade80] to-[#22c55e] border-none text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(74,222,128,0.4)]"
-            >
-              {t("snake.startGame", "Start Game")}
-            </button>
-          </div>
-        )}
+        <GameOverlay visible={gameState === "start"}>
+          <h2 className="text-3xl text-[#4ade80]">{t("snake.title", "Snake Game")}</h2>
+          <GameButton onClick={startGame} accentColor="green">
+            {t("snake.startGame", "Start Game")}
+          </GameButton>
+        </GameOverlay>
         
-        {gameState === "gameover" && (
-          <div 
-            className="absolute inset-0 flex flex-col justify-center items-center gap-4 rounded-[15px]"
-            style={{ background: "rgba(0, 0, 0, 0.8)" }}
+        <GameOverlay visible={gameState === "gameover"}>
+          <h2 className="text-3xl text-[#e94560]">{t("snake.gameOver", "Game Over!")}</h2>
+          <p className="text-xl">{t("snake.score", "Score")}: {finalScore}</p>
+          <GameButton onClick={startGame} accentColor="green">
+            {t("snake.playAgain", "Play Again")}
+          </GameButton>
+          <Link 
+            href="/main"
+            className="px-8 py-3 text-base bg-transparent border-2 border-[#4ade80] text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 no-underline hover:bg-[#4ade80]"
           >
-            <h2 className="text-3xl text-[#e94560]">{t("snake.gameOver", "Game Over!")}</h2>
-            <p className="text-xl">{t("snake.score", "Score")}: {finalScore}</p>
-            <button 
-              onClick={startGame}
-              className="px-8 py-3 text-base bg-gradient-to-r from-[#4ade80] to-[#22c55e] border-none text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(74,222,128,0.4)]"
-            >
-              {t("snake.playAgain", "Play Again")}
-            </button>
-            <Link 
-              href="/main"
-              className="px-8 py-3 text-base bg-transparent border-2 border-[#4ade80] text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 no-underline hover:bg-[#4ade80]"
-            >
-              {t("snake.backToMenu", "Back to Menu")}
-            </Link>
-          </div>
-        )}
+            {t("snake.backToMenu", "Back to Menu")}
+          </Link>
+        </GameOverlay>
       </div>
-      
-      <Link 
-        href="/main"
-        className="mt-6 text-[#a0a0a0] no-underline transition-colors duration-300 hover:text-white"
-      >
-        {t("snake.backToMenu", "← Back to Menu")}
-      </Link>
-    </div>
+    </GameLayout>
   )
 }
