@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import Link from "next/link"
+import GameLayout, { GameButton, GameOverlay } from "@/components/game-layout"
 
 export default function PongPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -65,7 +66,6 @@ export default function PongPage() {
       setTranslationsLoaded(true)
     } catch (error) {
       console.error("Failed to load translations:", error)
-      // Fallback to English if loading fails
       setTranslationsLoaded(true)
     }
   }
@@ -307,65 +307,47 @@ export default function PongPage() {
 
   if (!translationsLoaded) {
     return (
-      <div 
-        className="min-h-screen flex flex-col items-center justify-center text-white"
-        style={{
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-        }}
+      <GameLayout
+        title="..."
+        description="Loading..."
+        accentColor="blue"
       >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#60a5fa] mx-auto mb-4"></div>
-          <p className="text-[#a0a0a0]">{t("loading", "Loading...")}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-[#a0a0a0]">Loading...</p>
         </div>
-      </div>
+      </GameLayout>
     )
   }
 
   return (
-    <div 
-      className="min-h-screen flex flex-col items-center text-white p-4"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-      }}
+    <GameLayout
+      title={t("pong.title", "Pong Game")}
+      description={t("pong.instructions", "Use W/S keys to move your paddle")}
+      accentColor="blue"
+      backLinkText={t("pong.backToMenu", "← Back to Menu")}
+      header={
+        <div className="flex gap-12 items-center">
+          <div className="text-center">
+            <div className="text-sm text-[#e94560] mb-1">{t("pong.player1", "Player 1")}</div>
+            <div className="text-4xl font-bold text-[#e94560]">{player1Score}</div>
+          </div>
+          <div className="text-xl text-[#666]">VS</div>
+          <div className="text-center">
+            <div className="text-sm text-[#60a5fa] mb-1">{t("pong.player2", "Player 2 (AI)")}</div>
+            <div className="text-4xl font-bold text-[#60a5fa]">{player2Score}</div>
+          </div>
+        </div>
+      }
+      footer={
+        gameState === "playing" ? (
+          <GameButton onClick={togglePause} accentColor="blue" className="text-sm px-6 py-2">
+            {isPaused ? t("pong.resume", "Resume") : t("pong.pause", "Pause")}
+          </GameButton>
+        ) : null
+      }
     >
-      <div className="text-center mb-4">
-        <h1 
-          className="text-3xl mb-2"
-          style={{
-            background: "linear-gradient(90deg, #60a5fa, #3b82f6)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}
-        >
-          {t("pong.title", "Pong Game")}
-        </h1>
-        <p className="text-[#a0a0a0] text-sm">
-          {t("pong.instructions", "Use W/S keys to move your paddle")}
-        </p>
-      </div>
-      
-      <div className="flex gap-12 mb-4 items-center">
-        <div className="text-center">
-          <div className="text-sm text-[#e94560] mb-1">{t("pong.player1", "Player 1")}</div>
-          <div className="text-4xl font-bold text-[#e94560]">{player1Score}</div>
-        </div>
-        <div className="text-xl text-[#666]">VS</div>
-        <div className="text-center">
-          <div className="text-sm text-[#60a5fa] mb-1">{t("pong.player2", "Player 2 (AI)")}</div>
-          <div className="text-4xl font-bold text-[#60a5fa]">{player2Score}</div>
-        </div>
-      </div>
-      
-      <div 
-        className="relative p-4 rounded-[15px]"
-        style={{
-          background: "rgba(255, 255, 255, 0.05)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)"
-        }}
-      >
+      <div className="relative">
         <canvas 
           ref={canvasRef}
           width={600}
@@ -373,66 +355,32 @@ export default function PongPage() {
           className="block rounded-[10px]"
         />
         
-        {gameState === "start" && (
-          <div 
-            className="absolute inset-0 flex flex-col justify-center items-center gap-4 rounded-[15px]"
-            style={{ background: "rgba(0, 0, 0, 0.8)" }}
-          >
-            <h2 className="text-3xl text-[#60a5fa]">{t("pong.title", "Pong Game")}</h2>
-            <p className="text-white">{t("pong.instructions", "Use W/S keys to move your paddle")}</p>
-            <button 
-              onClick={startGame}
-              className="px-8 py-3 text-base bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] border-none text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(96,165,250,0.4)]"
-            >
-              {t("pong.startGame", "Start Game")}
-            </button>
-          </div>
-        )}
+        <GameOverlay visible={gameState === "start"}>
+          <h2 className="text-3xl text-[#60a5fa]">{t("pong.title", "Pong Game")}</h2>
+          <p className="text-white">{t("pong.instructions", "Use W/S keys to move your paddle")}</p>
+          <GameButton onClick={startGame} accentColor="blue">
+            {t("pong.startGame", "Start Game")}
+          </GameButton>
+        </GameOverlay>
         
-        {gameState === "gameover" && (
-          <div 
-            className="absolute inset-0 flex flex-col justify-center items-center gap-4 rounded-[15px]"
-            style={{ background: "rgba(0, 0, 0, 0.8)" }}
+        <GameOverlay visible={gameState === "gameover"}>
+          <h2 className="text-3xl text-[#60a5fa]">{t("pong.gameOver", "Game Over!")}</h2>
+          <p className="text-xl">
+            {t("pong.winner", "Winner")}: <span className="text-[#4ade80] font-bold">
+              {winner === 1 ? t("pong.player1", "Player 1") : t("pong.player2", "Player 2 (AI)")}
+            </span>
+          </p>
+          <GameButton onClick={startGame} accentColor="blue">
+            {t("pong.playAgain", "Play Again")}
+          </GameButton>
+          <Link 
+            href="/main"
+            className="px-8 py-3 text-base bg-transparent border-2 border-[#60a5fa] text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 no-underline hover:bg-[#60a5fa]"
           >
-            <h2 className="text-3xl text-[#60a5fa]">{t("pong.gameOver", "Game Over!")}</h2>
-            <p className="text-xl">
-              {t("pong.winner", "Winner")}: <span className="text-[#4ade80] font-bold">
-                {winner === 1 ? t("pong.player1", "Player 1") : t("pong.player2", "Player 2 (AI)")}
-              </span>
-            </p>
-            <button 
-              onClick={startGame}
-              className="px-8 py-3 text-base bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] border-none text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(96,165,250,0.4)]"
-            >
-              {t("pong.playAgain", "Play Again")}
-            </button>
-            <Link 
-              href="/main"
-              className="px-8 py-3 text-base bg-transparent border-2 border-[#60a5fa] text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 no-underline hover:bg-[#60a5fa]"
-            >
-              {t("pong.backToMenu", "Back to Menu")}
-            </Link>
-          </div>
-        )}
+            {t("pong.backToMenu", "Back to Menu")}
+          </Link>
+        </GameOverlay>
       </div>
-      
-      {gameState === "playing" && (
-        <div className="mt-4">
-          <button 
-            onClick={togglePause}
-            className="px-6 py-2 text-sm bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] border-none text-white rounded-full cursor-pointer uppercase tracking-wider font-bold transition-all duration-300 hover:-translate-y-0.5"
-          >
-            {isPaused ? t("pong.resume", "Resume") : t("pong.pause", "Pause")}
-          </button>
-        </div>
-      )}
-      
-      <Link 
-        href="/main"
-        className="mt-6 text-[#a0a0a0] no-underline transition-colors duration-300 hover:text-white"
-      >
-        {t("pong.backToMenu", "← Back to Menu")}
-      </Link>
-    </div>
+    </GameLayout>
   )
 }
