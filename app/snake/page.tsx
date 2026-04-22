@@ -15,6 +15,7 @@ export default function SnakePage() {
   const [highScore, setHighScore] = useState(0)
   const [gameState, setGameState] = useState<"start" | "playing" | "gameover">("start")
   const [finalScore, setFinalScore] = useState(0)
+  const [translationsLoaded, setTranslationsLoaded] = useState(false)
 
   const gameRef = useRef<{
     snake: Position[]
@@ -60,8 +61,11 @@ export default function SnakePage() {
       
       flatten(data)
       setTranslations(flatTranslations)
+      setTranslationsLoaded(true)
     } catch (error) {
       console.error("Failed to load translations:", error)
+      // Fallback to English if loading fails
+      setTranslationsLoaded(true)
     }
   }
 
@@ -269,6 +273,23 @@ export default function SnakePage() {
       }
     }
   }, [])
+
+  if (!translationsLoaded) {
+    return (
+      <div 
+        className="min-h-screen flex flex-col items-center justify-center text-white p-4"
+        style={{
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+        }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-[#a0a0a0]">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div 

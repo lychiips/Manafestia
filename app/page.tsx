@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 export default function Home() {
   const [currentLang, setCurrentLang] = useState("en")
   const [translations, setTranslations] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+  const [translationsLoaded, setTranslationsLoaded] = useState(false)
 
   useEffect(() => {
     const savedLang = localStorage.getItem("selectedLanguage") || "en"
@@ -32,11 +32,19 @@ export default function Home() {
       
       flatten(data)
       setTranslations(flatTranslations)
-      // Add a 5-second delay before hiding the loading screen
-      setTimeout(() => setLoading(false), 1500)
+      setTranslationsLoaded(true)
     } catch (error) {
       console.error("Failed to load translations:", error)
-      setLoading(false)
+      // Fallback to English if loading fails
+      setTranslations({
+        "landing.title": "Hibachi Mana 2026 Birthday",
+        "landing.subtitle": "Happy birthday!",
+        "landing.selectLanguage": "Select Language",
+        "landing.english": "English",
+        "landing.japanese": "Japanese",
+        "landing.startButton": "Start!"
+      })
+      setTranslationsLoaded(true)
     }
   }
 
@@ -48,21 +56,8 @@ export default function Home() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback
 
-    if (loading) {
-    return (
-      <div 
-        className="min-h-screen flex justify-center items-center text-white p-8"
-        style={{
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-        }}
-      >
-        <div className="text-center">
-          <div className="text-4xl mb-4">Loading in animation</div>
-          <div className="text-3xl mb-4">Insert load in gif here</div>
-        </div>
-      </div>
-    )
+  if (!translationsLoaded) {
+    return null
   }
 
   return (
@@ -95,16 +90,16 @@ export default function Home() {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-          {t("landing.title", "Mini Games Arcade")}
+          {t("landing.title", "")}
         </h1>
         
         <p className="text-[#a0a0a0] mb-8 text-lg">
-          {t("landing.subtitle", "Choose your language and start playing!")}
+          {t("landing.subtitle", "")}
         </p>
         
         <div className="mb-8">
           <label className="block mb-4 text-[#ccc]">
-            {t("landing.selectLanguage", "Select Language")}
+            {t("landing.selectLanguage", "")}
           </label>
           <div className="flex justify-center gap-4">
             <button
@@ -113,7 +108,7 @@ export default function Home() {
                 currentLang === "en" ? "bg-[#6fd9ff]" : "bg-transparent hover:bg-[rgba(111, 217, 255, 0.2)]"
               }`}
             >
-              {t("landing.english", "English")}
+              {t("landing.english", "")}
             </button>
             <button
               onClick={() => handleLanguageChange("jp")}
@@ -121,7 +116,7 @@ export default function Home() {
                 currentLang === "jp" ? "bg-[#6fd9ff]" : "bg-transparent hover:bg-[rgba(111, 217, 255, 0.2)]"
               }`}
             >
-              {t("landing.japanese", "Japanese")}
+              {t("landing.japanese", "")}
             </button>
           </div>
         </div>
@@ -136,7 +131,7 @@ export default function Home() {
           onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 6px 20px rgba(80, 69, 233, 0.6)"}
           onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 4px 15px rgba(80, 69, 233, 0.4)"}
         >
-          {t("landing.startButton", "Start Playing")}
+          {t("landing.startButton", "")}
         </button>
       </div>
     </div>
