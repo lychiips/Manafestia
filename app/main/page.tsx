@@ -135,6 +135,19 @@ export default function MainPage() {
             <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.oshikatsu", "Oshikatsu")}</h2>
             <p className="text-[#a0a0a0] text-sm">{t("mainpage.oshikatsuDesc", "Mana around the world!")}</p>
           </Link>
+          
+          <Link 
+            href="/example-game" 
+            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
+            style={{
+              background: "rgba(255, 255, 255, 0.1)",
+              backdropFilter: "blur(10px)"
+            }}
+          >
+            <div className="text-6xl mb-4 text-[#a855f7]">🎮</div>
+            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.exampleGame", "Example Game")}</h2>
+            <p className="text-[#a0a0a0] text-sm">{t("mainpage.exampleGameDesc", "Template demo for developers")}</p>
+          </Link>
         </div>
         
         <Link 
