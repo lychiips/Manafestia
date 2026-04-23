@@ -21,6 +21,8 @@ import GameLayout, {
 
 type GameState = "start" | "playing" | "gameover"
 
+
+/** Please export your game like this **/
 export default function ExampleGamePage() {
   const [gameState, setGameState] = useState<GameState>("start")
   const [score, setScore] = useState(0)
@@ -28,6 +30,7 @@ export default function ExampleGamePage() {
   const [highScore, setHighScore] = useState(0)
   const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null)
 
+  // All of this is just random react stuff for the example game
   const startGame = useCallback(() => {
     setScore(0)
     setTimeLeft(10)
@@ -67,11 +70,13 @@ export default function ExampleGamePage() {
     setTimeLeft(10)
   }, [timerRef])
 
+  /** Please return a GameLayout because this is how the page's layout will be consistent */
   return (
     <GameLayout
       title="Click Counter"
       description="Click as many times as you can in 10 seconds! A simple example game using the GameLayout component."
       accentColor="orange"
+      // You don't need to use any headers if you want but leaving this here in case anyone wants to use them
       header={
         <div className="flex gap-8">
           <ScoreDisplay label="Score" score={score} color="#fb923c" />
@@ -81,7 +86,7 @@ export default function ExampleGamePage() {
       }
       containerWidth="400px"
     >
-      {/* Game Area */}
+      {/* Game Area: This is the main place to code your game */}
       <div className="relative w-[368px] h-[300px] flex items-center justify-center">
         {gameState === "playing" && (
           <button
@@ -96,7 +101,7 @@ export default function ExampleGamePage() {
           </button>
         )}
 
-        {/* Start Screen Overlay */}
+        {/* Start Screen Overlay (again if you want to use my starter cod to center your game) */}
         <GameOverlay visible={gameState === "start"}>
           <h2 className="text-3xl text-[#fb923c]">Click Counter</h2>
           <p className="text-white text-center max-w-xs">
@@ -107,7 +112,7 @@ export default function ExampleGamePage() {
           </GameButton>
         </GameOverlay>
 
-        {/* Game Over Overlay */}
+        {/* Game Over Overlay (again if you want to use my starter code to center your game) */}
         <GameOverlay visible={gameState === "gameover"}>
           <h2 className="text-3xl text-[#f87171]">{"Time's Up!"}</h2>
           <p className="text-xl text-white">

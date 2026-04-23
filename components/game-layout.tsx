@@ -65,8 +65,13 @@ export default function GameLayout({
       className="min-h-screen flex flex-col items-center text-white p-4"
       style={{
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        background:
-          "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+        backgroundImage: "url('/images/manafestiagamebg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed"
+        // background:
+        //   "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
       }}
     >
       {/* Title and Description */}
@@ -82,7 +87,7 @@ export default function GameLayout({
         >
           {title}
         </h1>
-        <p className="text-[#a0a0a0] text-sm max-w-md">{description}</p>
+        <p className="text-[#000000] text-sm max-w-md">{description}</p>
       </div>
 
       {/* Optional Header (e.g., scores) */}
@@ -106,7 +111,7 @@ export default function GameLayout({
       {/* Back Link */}
       <Link
         href={backLinkHref}
-        className="mt-6 text-[#a0a0a0] no-underline transition-colors duration-300 hover:text-white"
+        className="mt-6 text-[#000000] no-underline transition-colors duration-300 hover:text-white"
       >
         {backLinkText}
       </Link>
@@ -180,7 +185,7 @@ export function ScoreDisplay({ label, score, color = "#4ade80" }: ScoreDisplayPr
       className="px-6 py-3 rounded-[10px] text-center"
       style={{ background: "rgba(255, 255, 255, 0.1)" }}
     >
-      <div className="text-sm text-[#a0a0a0] mb-1">{label}</div>
+      <div className="text-sm text-[#000000] mb-1">{label}</div>
       <div className="text-2xl font-bold" style={{ color }}>
         {score}
       </div>
