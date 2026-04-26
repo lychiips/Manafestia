@@ -11,9 +11,9 @@ interface MenuButton {
 }
 
 const menuButtons: MenuButton[] = [
-  { id: "music",    src: "/images/btn-music.png",    label: "Music" },
+  { id: "music", src: "/images/btn-music.png", label: "Music" },
   { id: "language", src: "/images/btn-language.png", label: "Language" },
-  { id: "start",    src: "/images/btn-start.png",    label: "Start" },
+  { id: "start", src: "/images/btn-start.png", label: "Start" },
 ]
 
 // Alpha threshold — pixels with alpha below this are treated as transparent
@@ -73,6 +73,7 @@ function ButtonLayer({ btn, hovered, onHoverChange, onClick }: ButtonLayerProps)
   const offscreenRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const naturalSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
+  const wasHoveredRef = useRef(false)
 
   // Load the PNG into an offscreen canvas once so we can sample pixels
   useEffect(() => {
@@ -135,9 +136,19 @@ function ButtonLayer({ btn, hovered, onHoverChange, onClick }: ButtonLayerProps)
         className="absolute inset-0 w-full h-full"
         style={{ pointerEvents: "auto", cursor: hovered ? "pointer" : "default" }}
         onMouseMove={(e) => {
-          onHoverChange(isOpaque(e) ? btn.id : null)
+          const isNowOpaque = isOpaque(e)
+          if (isNowOpaque && !wasHoveredRef.current) {
+            wasHoveredRef.current = true
+            onHoverChange(btn.id)
+          } else if (!isNowOpaque && wasHoveredRef.current) {
+            wasHoveredRef.current = false
+            onHoverChange(null)
+          }
         }}
-        onMouseLeave={() => onHoverChange(null)}
+        onMouseLeave={() => {
+          wasHoveredRef.current = false
+          onHoverChange(null)
+        }}
         onClick={(e) => {
           if (isOpaque(e)) onClick(btn.id)
         }}
@@ -156,9 +167,11 @@ export default function MenuPage() {
     switch (item) {
       case "music":
         // Add music toggle logic here
+        window.location.href = "/snake"
         break
       case "language":
         // Add language selection logic here
+        window.location.href = "/pong"
         break
       case "start":
         window.location.href = "/main"
