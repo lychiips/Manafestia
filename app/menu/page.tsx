@@ -45,31 +45,31 @@ export default function MenuPage() {
         className="absolute inset-0 w-full h-full object-contain"
       />
 
-      {/* Button PNGs — same canvas size as the GIF so they align automatically */}
+      {/* Button PNGs — same canvas + object-contain as the GIF so they align pixel-perfectly.
+          mix-blend-mode:multiply makes the white canvas invisible, leaving only the ink.
+          The img itself is the interactive element so no wrapper can skew its rendered size. */}
       {menuButtons.map((btn) => (
-        <button
+        <img
           key={btn.id}
-          type="button"
-          aria-label={btn.label}
+          src={btn.src}
+          alt={btn.label}
+          role="button"
+          tabIndex={0}
           onClick={() => handleClick(btn.id)}
           onMouseEnter={() => setHoveredItem(btn.id)}
           onMouseLeave={() => setHoveredItem(null)}
-          className="absolute inset-0 w-full h-full bg-transparent border-0 p-0 cursor-pointer"
-          style={{ WebkitTapHighlightColor: "transparent" }}
-        >
-          <img
-            src={btn.src}
-            alt={btn.label}
-            className="w-full h-full object-contain transition-all duration-200"
-            style={{
-              // On hover: invert the ink colour to give a cyan-tinted highlight
-              filter:
-                hoveredItem === btn.id
-                  ? "invert(1) sepia(1) saturate(3) hue-rotate(160deg)"
-                  : "none",
-            }}
-          />
-        </button>
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") handleClick(btn.id)
+          }}
+          className="absolute inset-0 w-full h-full object-contain cursor-pointer transition-all duration-200"
+          style={{
+            mixBlendMode: "multiply",
+            filter:
+              hoveredItem === btn.id
+                ? "invert(1) sepia(1) saturate(4) hue-rotate(160deg) brightness(0.85)"
+                : "none",
+          }}
+        />
       ))}
     </div>
   )
