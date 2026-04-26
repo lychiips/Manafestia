@@ -24,10 +24,10 @@ const ALPHA_THRESHOLD = 10
  * accounting for object-contain letterboxing inside the container element.
  */
 function sampleAlpha(
-  canvas: HTMLCanvasElement,
   container: HTMLElement,
   clientX: number,
   clientY: number,
+  canvas: HTMLCanvasElement,
   naturalWidth: number,
   naturalHeight: number,
 ): number {
@@ -65,112 +65,125 @@ function sampleAlpha(
 interface ButtonLayerProps {
   btn: MenuButton
   hovered: boolean
-  onHoverChange: (id: MenuItem | null) => void
-  onClick: (id: MenuItem) => void
 }
 
-function ButtonLayer({ btn, hovered, onHoverChange, onClick }: ButtonLayerProps) {
-  const offscreenRef = useRef<HTMLCanvasElement | null>(null)
+/**
+ * Visual layer only — no interaction, just renders the PNG with hover effect.
+ */
+function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
+  return (
+    <img
+      src={btn.src}
+      alt=""
+      aria-hidden
+      className="absolute inset-0 w-full h-full object-contain transition-all duration-150"
+      style={{
+        mixBlendMode: "multiply",
+        pointerEvents: "none",
+        filter: hovered
+          ? "invert(1) sepia(1) saturate(4) hue-rotate(160deg) brightness(0.85)"
+          : "none",
+      }}
+    />
+  )
+}
+
+/**
+ * Unified interaction layer that checks all button canvases on mouse move/click.
+ */
+function InteractionOverlay({
+  buttons,
+  hoveredItem,
+  onHoverChange,
+  onClick,
+}: {
+  buttons: Array<{ btn: MenuButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  hoveredItem: MenuItem | null
+  onHoverChange: (id: MenuItem | null) => void
+  onClick: (id: MenuItem) => void
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const naturalSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
-  const wasHoveredRef = useRef(false)
+  const wasHoveredRef = useRef<MenuItem | null>(null)
 
-  // Load the PNG into an offscreen canvas once so we can sample pixels
-  useEffect(() => {
-    const img = new Image()
-    img.crossOrigin = "anonymous"
-    img.src = btn.src
-    img.onload = () => {
-      naturalSize.current = { w: img.naturalWidth, h: img.naturalHeight }
-      const canvas = document.createElement("canvas")
-      canvas.width = img.naturalWidth
-      canvas.height = img.naturalHeight
-      canvas.getContext("2d")?.drawImage(img, 0, 0)
-      offscreenRef.current = canvas
-    }
-  }, [btn.src])
+  const checkButtonAtCursor = useCallback(
+    (clientX: number, clientY: number): MenuItem | null => {
+      if (!containerRef.current) return null
 
-  const isOpaque = useCallback(
-    (e: React.MouseEvent): boolean => {
-      if (!offscreenRef.current || !containerRef.current) return false
-      const { w, h } = naturalSize.current
-      const alpha = sampleAlpha(
-        offscreenRef.current,
-        containerRef.current,
-        e.clientX,
-        e.clientY,
-        w,
-        h,
-      )
-      return alpha > ALPHA_THRESHOLD
+      for (const { btn, canvas, size } of buttons) {
+        if (!canvas) continue
+        const alpha = sampleAlpha(containerRef.current, clientX, clientY, canvas, size.w, size.h)
+        if (alpha > ALPHA_THRESHOLD) return btn.id
+      }
+      return null
     },
-    [],
+    [buttons],
   )
 
   return (
     <div
       ref={containerRef}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "none" }}
-    >
-      {/* Visual layer — always rendered, pointer-events off so transparent areas pass through */}
-      <img
-        src={btn.src}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 w-full h-full object-contain transition-all duration-150"
-        style={{
-          mixBlendMode: "multiply",
-          pointerEvents: "none",
-          filter: hovered
-            ? "invert(1) sepia(1) saturate(4) hue-rotate(160deg) brightness(0.85)"
-            : "none",
-        }}
-      />
-
-      {/* Interaction layer — full-size but only fires when cursor is over an opaque pixel */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={btn.label}
-        className="absolute inset-0 w-full h-full"
-        style={{ pointerEvents: "auto", cursor: hovered ? "pointer" : "default" }}
-        onMouseMove={(e) => {
-          const isNowOpaque = isOpaque(e)
-          if (isNowOpaque && !wasHoveredRef.current) {
-            wasHoveredRef.current = true
-            onHoverChange(btn.id)
-          } else if (!isNowOpaque && wasHoveredRef.current) {
-            wasHoveredRef.current = false
-            onHoverChange(null)
-          }
-        }}
-        onMouseLeave={() => {
-          wasHoveredRef.current = false
-          onHoverChange(null)
-        }}
-        onClick={(e) => {
-          if (isOpaque(e)) onClick(btn.id)
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") onClick(btn.id)
-        }}
-      />
-    </div>
+      style={{ pointerEvents: "auto" }}
+      onMouseMove={(e) => {
+        const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
+        if (hoveredNow !== wasHoveredRef.current) {
+          wasHoveredRef.current = hoveredNow
+          onHoverChange(hoveredNow)
+        }
+      }}
+      onMouseLeave={() => {
+        wasHoveredRef.current = null
+        onHoverChange(null)
+      }}
+      onClick={(e) => {
+        const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
+        if (hoveredNow) onClick(hoveredNow)
+      }}
+    />
   )
 }
 
 export default function MenuPage() {
   const [hoveredItem, setHoveredItem] = useState<MenuItem | null>(null)
+  const [buttonCanvases, setButtonCanvases] = useState<
+    Array<{ btn: MenuButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  >([])
+
+  // Load all button PNGs into offscreen canvases once on mount
+  useEffect(() => {
+    let loadedCount = 0
+    const canvases: Array<{ btn: MenuButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }> = []
+
+    menuButtons.forEach((btn) => {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = btn.src
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        canvas.getContext("2d")?.drawImage(img, 0, 0)
+        canvases.push({
+          btn,
+          canvas,
+          size: { w: img.naturalWidth, h: img.naturalHeight },
+        })
+        loadedCount++
+        if (loadedCount === menuButtons.length) {
+          // Sort by button id order to ensure consistent ordering
+          canvases.sort((a, b) => menuButtons.findIndex((b2) => b2.id === a.btn.id) - menuButtons.findIndex((b2) => b2.id === b.btn.id))
+          setButtonCanvases(canvases)
+        }
+      }
+    })
+  }, [])
 
   const handleClick = useCallback((item: MenuItem) => {
     switch (item) {
       case "music":
-        // Add music toggle logic here
         window.location.href = "/snake"
         break
       case "language":
-        // Add language selection logic here
         window.location.href = "/pong"
         break
       case "start":
@@ -187,15 +200,20 @@ export default function MenuPage() {
         className="absolute inset-0 w-full h-full object-contain"
       />
 
+      {/* Visual layers for all buttons */}
       {menuButtons.map((btn) => (
-        <ButtonLayer
-          key={btn.id}
-          btn={btn}
-          hovered={hoveredItem === btn.id}
+        <ButtonLayerVisual key={btn.id} btn={btn} hovered={hoveredItem === btn.id} />
+      ))}
+
+      {/* Single unified interaction layer */}
+      {buttonCanvases.length > 0 && (
+        <InteractionOverlay
+          buttons={buttonCanvases}
+          hoveredItem={hoveredItem}
           onHoverChange={setHoveredItem}
           onClick={handleClick}
         />
-      ))}
+      )}
     </div>
   )
 }
