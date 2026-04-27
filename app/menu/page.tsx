@@ -78,11 +78,9 @@ function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
       aria-hidden
       className="absolute inset-0 w-full h-full object-contain transition-all duration-150"
       style={{
-        mixBlendMode: "multiply",
+        mixBlendMode: hovered ? "screen" : "multiply",
         pointerEvents: "none",
-        filter: hovered
-          ? "invert(1) sepia(1) saturate(4) hue-rotate(160deg) brightness(0.85)"
-          : "none",
+        filter: hovered ? "hue-rotate(220deg) saturate(2)" : "none",
       }}
     />
   )
