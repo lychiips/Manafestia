@@ -7,13 +7,14 @@ type MenuItem = "music" | "language" | "start"
 interface MenuButton {
   id: MenuItem
   src: string
+  hoverSrc: string
   label: string
 }
 
 const menuButtons: MenuButton[] = [
-  { id: "music", src: "/images/btn-music.png", label: "Music" },
-  { id: "language", src: "/images/btn-language.png", label: "Language" },
-  { id: "start", src: "/images/btn-start.png", label: "Start" },
+  { id: "music", src: "/images/btn-music.png", hoverSrc: "/images/btn-music-hover.png", label: "Music" },
+  { id: "language", src: "/images/btn-language.png", hoverSrc: "/images/btn-language-hover.png", label: "Language" },
+  { id: "start", src: "/images/btn-start.png", hoverSrc: "/images/btn-start-hover.png", label: "Start" },
 ]
 
 // Alpha threshold — pixels with alpha below this are treated as transparent
@@ -68,21 +69,18 @@ interface ButtonLayerProps {
 }
 
 /**
- * Visual layer only — no interaction, just renders the PNG with hover effect.
+ * Visual layer only — renders either the normal or hover version of the button image.
  */
 function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
   return (
     <img
-      src={btn.src}
+      src={hovered ? btn.hoverSrc : btn.src}
       alt=""
       aria-hidden
       className="absolute inset-0 w-full h-full object-contain transition-all duration-150"
       style={{
         mixBlendMode: "multiply",
         pointerEvents: "none",
-        filter: hovered
-          ? "invert(1) sepia(1) saturate(4) hue-rotate(160deg) brightness(0.85)"
-          : "none",
       }}
     />
   )
@@ -151,14 +149,17 @@ export default function MenuPage() {
 
   // Load all button PNGs into offscreen canvases once on mount
   useEffect(() => {
+    let isMounted = true
     let loadedCount = 0
     const canvases: Array<{ btn: MenuButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }> = []
 
     menuButtons.forEach((btn) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
-      img.src = btn.src
+      // Force cache bust by adding a timestamp query parameter
+      img.src = `${btn.src}?t=${Date.now()}`
       img.onload = () => {
+        if (!isMounted) return
         const canvas = document.createElement("canvas")
         canvas.width = img.naturalWidth
         canvas.height = img.naturalHeight
@@ -172,10 +173,14 @@ export default function MenuPage() {
         if (loadedCount === menuButtons.length) {
           // Sort by button id order to ensure consistent ordering
           canvases.sort((a, b) => menuButtons.findIndex((b2) => b2.id === a.btn.id) - menuButtons.findIndex((b2) => b2.id === b.btn.id))
-          setButtonCanvases(canvases)
+          if (isMounted) setButtonCanvases(canvases)
         }
       }
     })
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleClick = useCallback((item: MenuItem) => {
