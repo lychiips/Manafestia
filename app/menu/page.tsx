@@ -7,13 +7,14 @@ type MenuItem = "music" | "language" | "start"
 interface MenuButton {
   id: MenuItem
   src: string
+  hoverSrc: string
   label: string
 }
 
 const menuButtons: MenuButton[] = [
-  { id: "music", src: "/images/btn-music.png", label: "Music" },
-  { id: "language", src: "/images/btn-language.png", label: "Language" },
-  { id: "start", src: "/images/btn-start.png", label: "Start" },
+  { id: "music", src: "/images/btn-music.png", hoverSrc: "/images/btn-music-hover.png", label: "Music" },
+  { id: "language", src: "/images/btn-language.png", hoverSrc: "/images/btn-language-hover.png", label: "Language" },
+  { id: "start", src: "/images/btn-start.png", hoverSrc: "/images/btn-start-hover.png", label: "Start" },
 ]
 
 // Alpha threshold — pixels with alpha below this are treated as transparent
@@ -68,19 +69,18 @@ interface ButtonLayerProps {
 }
 
 /**
- * Visual layer only — no interaction, just renders the PNG with hover effect.
+ * Visual layer only — renders either the normal or hover version of the button image.
  */
 function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
   return (
     <img
-      src={btn.src}
+      src={hovered ? btn.hoverSrc : btn.src}
       alt=""
       aria-hidden
       className="absolute inset-0 w-full h-full object-contain transition-all duration-150"
       style={{
-        mixBlendMode: hovered ? "screen" : "multiply",
+        mixBlendMode: "multiply",
         pointerEvents: "none",
-        filter: hovered ? "hue-rotate(220deg) saturate(2)" : "none",
       }}
     />
   )
