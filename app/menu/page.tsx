@@ -151,14 +151,17 @@ export default function MenuPage() {
 
   // Load all button PNGs into offscreen canvases once on mount
   useEffect(() => {
+    let isMounted = true
     let loadedCount = 0
     const canvases: Array<{ btn: MenuButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }> = []
 
     menuButtons.forEach((btn) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
-      img.src = btn.src
+      // Force cache bust by adding a timestamp query parameter
+      img.src = `${btn.src}?t=${Date.now()}`
       img.onload = () => {
+        if (!isMounted) return
         const canvas = document.createElement("canvas")
         canvas.width = img.naturalWidth
         canvas.height = img.naturalHeight
@@ -172,10 +175,14 @@ export default function MenuPage() {
         if (loadedCount === menuButtons.length) {
           // Sort by button id order to ensure consistent ordering
           canvases.sort((a, b) => menuButtons.findIndex((b2) => b2.id === a.btn.id) - menuButtons.findIndex((b2) => b2.id === b.btn.id))
-          setButtonCanvases(canvases)
+          if (isMounted) setButtonCanvases(canvases)
         }
       }
     })
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleClick = useCallback((item: MenuItem) => {
