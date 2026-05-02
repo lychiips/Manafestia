@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from "react"
 import { SettingsPopup } from "@/components/settings-popup"
+import { useLanguage } from "@/components/language-context"
 
 export default function Home() {
-  const [currentLang, setCurrentLang] = useState("en")
+  const { currentLang } = useLanguage()
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translationsLoaded, setTranslationsLoaded] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLanguage") || "en"
-    setCurrentLang(savedLang)
-    loadTranslations(savedLang)
-  }, [])
+    loadTranslations(currentLang)
+  }, [currentLang])
 
   const loadTranslations = async (lang: string) => {
     try {

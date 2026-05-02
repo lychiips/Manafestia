@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useBackgroundMusic } from './background-music'
+import { useLanguage } from './language-context'
 
 interface SettingsPopupProps {
   isOpen: boolean
@@ -10,14 +11,14 @@ interface SettingsPopupProps {
 
 export function SettingsPopup({ isOpen, onClose }: SettingsPopupProps) {
   const { volume, setVolume } = useBackgroundMusic()
-  const [currentLang, setCurrentLang] = useState('en')
+  const { currentLang, setCurrentLang } = useLanguage()
   const [tempVolume, setTempVolume] = useState(volume)
   const [translations, setTranslations] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const savedLang = localStorage.getItem('selectedLanguage') || 'en'
     setCurrentLang(savedLang)
-  }, [])
+  }, [setCurrentLang])
 
   useEffect(() => {
     setTempVolume(volume)
@@ -53,12 +54,8 @@ export function SettingsPopup({ isOpen, onClose }: SettingsPopupProps) {
   }, [currentLang])
 
   const handleLanguageChange = (lang: string) => {
-    setCurrentLang(lang)
     localStorage.setItem('selectedLanguage', lang)
-    // Reload the page to reflect language changes immediately
-    setTimeout(() => {
-      window.location.reload()
-    }, 100)
+    setCurrentLang(lang)
   }
 
   const handleVolumeChange = (newVolume: number) => {
