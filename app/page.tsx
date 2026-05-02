@@ -71,8 +71,8 @@ function sampleAlpha(
     offsetY = (imgH - rect.height) / 2 / scaleY
   }
 
-  const px = Math.round(((clientX - rect.left) / rect.width) * naturalWidth + offsetX)
-  const py = Math.round(((clientY - rect.top) / rect.height) * naturalHeight + offsetY)
+  const px = Math.round((((clientX - rect.left) / imgW) * naturalWidth) + offsetX)
+  const py = Math.round((((clientY - rect.top) / imgH) * naturalHeight) + offsetY)
 
   if (px < 0 || py < 0 || px >= naturalWidth || py >= naturalHeight) return 0
 
