@@ -1,9 +1,37 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 
-export function BackgroundMusic() {
+interface MusicContextType {
+  volume: number
+  setVolume: (volume: number) => void
+  audioRef: React.RefObject<HTMLAudioElement>
+}
+
+const MusicContext = createContext<MusicContextType | undefined>(undefined)
+
+export function useBackgroundMusic() {
+  const context = useContext(MusicContext)
+  if (!context) {
+    throw new Error('useBackgroundMusic must be used within MusicProvider')
+  }
+  return context
+}
+
+export function MusicProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const [volume, setVolume] = useState(0.3)
+
+  useEffect(() => {
+    const savedVolume = localStorage.getItem('musicVolume')
+    if (savedVolume) {
+      const vol = parseFloat(savedVolume)
+      setVolume(vol)
+      if (audioRef.current) {
+        audioRef.current.volume = vol
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -11,7 +39,8 @@ export function BackgroundMusic() {
 
     // Set audio properties
     audio.loop = true
-    audio.volume = 0.3 // Set volume to 30%
+    audio.volume = volume
+    localStorage.setItem('musicVolume', volume.toString())
 
     // Attempt to play on mount
     const playAudio = () => {
@@ -39,13 +68,16 @@ export function BackgroundMusic() {
       document.removeEventListener('click', handleUserInteraction)
       document.removeEventListener('keydown', handleUserInteraction)
     }
-  }, [])
+  }, [volume])
 
   return (
-    <audio
-      ref={audioRef}
-      src="/audios/Karma.mp3"
-      aria-label="Background music"
-    />
+    <MusicContext.Provider value={{ volume, setVolume, audioRef }}>
+      <audio
+        ref={audioRef}
+        src="/audios/Karma.mp3"
+        aria-label="Background music"
+      />
+      {children}
+    </MusicContext.Provider>
   )
 }

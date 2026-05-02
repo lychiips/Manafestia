@@ -7,6 +7,11 @@
     "japanese": "Japanese",
     "startButton": "Start!"
   },
+  "settings": {
+    "title": "Settings",
+    "musicVolume": "Music Volume",
+    "close": "Close"
+  },
   "mainpage": {
     "title": "Game Selection",
     "subtitle": "Choose a game to play",
