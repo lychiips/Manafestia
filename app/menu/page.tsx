@@ -121,7 +121,7 @@ function InteractionOverlay({
     <div
       ref={containerRef}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "auto" }}
+      style={{ pointerEvents: "auto", cursor: hoveredItem ? 'grab' : 'auto' }}
       onMouseMove={(e) => {
         const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
         if (hoveredNow !== wasHoveredRef.current) {

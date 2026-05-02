@@ -1,162 +1,244 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { SettingsPopup } from "@/components/settings-popup"
 
-export default function MainPage() {
-  const [translations, setTranslations] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+type MainButtonId = "cookbook" | "fanart" | "letters" | "world" | "games" | "settings" | "home"
 
-  useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLanguage") || "en"
-    loadTranslations(savedLang)
-  }, [])
+interface MainButton {
+  id: MainButtonId
+  src: string
+  hoverSrc: string
+  href?: string
+  alt: string
+}
 
-  const loadTranslations = async (lang: string) => {
-    try {
-      const response = await fetch(`/locales/${lang}.json`)
-      const data = await response.json()
-      const flatTranslations: Record<string, string> = {}
-      
-      const flatten = (obj: Record<string, unknown>, prefix = "") => {
-        for (const key in obj) {
-          const fullKey = prefix ? `${prefix}.${key}` : key
-          if (typeof obj[key] === "object" && obj[key] !== null) {
-            flatten(obj[key] as Record<string, unknown>, fullKey)
-          } else {
-            flatTranslations[fullKey] = obj[key] as string
-          }
-        }
+const mainButtons: MainButton[] = [
+  {
+    id: "cookbook",
+    src: "/images/mainpage/btn-cookbook.png",
+    hoverSrc: "/images/mainpage/btn-cookbook-hover.png",
+    href: "/cookbook",
+    alt: "Cookbook",
+  },
+  {
+    id: "fanart",
+    src: "/images/mainpage/btn-fanart.png",
+    hoverSrc: "/images/mainpage/btn-fanart-hover.png",
+    href: "/oshikatsu",
+    alt: "Fanart",
+  },
+  {
+    id: "letters",
+    src: "/images/mainpage/btn-letters.png",
+    hoverSrc: "/images/mainpage/btn-letters-hover.png",
+    href: "/oshikatsu",
+    alt: "Letters",
+  },
+  {
+    id: "world",
+    src: "/images/mainpage/btn-world.png",
+    hoverSrc: "/images/mainpage/btn-world-hover.png",
+    href: "/oshikatsu",
+    alt: "World",
+  },
+  {
+    id: "settings",
+    src: "/images/mainpage/btn-settings.png",
+    hoverSrc: "/images/mainpage/btn-settings-hover.png",
+    alt: "Settings",
+  },
+  {
+    id: "home",
+    src: "/images/mainpage/btn-home.png",
+    hoverSrc: "/images/mainpage/btn-home-hover.png",
+    href: "/",
+    alt: "Home",
+  },
+  {
+    id: "games",
+    src: "/images/mainpage/btn-games.png",
+    hoverSrc: "/images/mainpage/btn-games-hover.png",
+    href: "/gameselect",
+    alt: "Game select",
+  },
+]
+
+const ALPHA_THRESHOLD = 10
+
+function sampleAlpha(
+  container: HTMLElement,
+  clientX: number,
+  clientY: number,
+  canvas: HTMLCanvasElement,
+  naturalWidth: number,
+  naturalHeight: number,
+): number {
+  const rect = container.getBoundingClientRect()
+  const scale = Math.max(rect.width / naturalWidth, rect.height / naturalHeight)
+  const imgW = naturalWidth * scale
+  const imgH = naturalHeight * scale
+  const imgX = rect.left + (rect.width - imgW) / 2
+  const imgY = rect.top + (rect.height - imgH) / 2
+
+  const px = Math.round(((clientX - imgX) / imgW) * naturalWidth)
+  const py = Math.round(((clientY - imgY) / imgH) * naturalHeight)
+
+  if (px < 0 || py < 0 || px >= naturalWidth || py >= naturalHeight) return 0
+
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return 0
+  return ctx.getImageData(px, py, 1, 1).data[3]
+}
+
+interface ButtonLayerProps {
+  btn: MainButton
+  hovered: boolean
+}
+
+function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
+  return (
+    <img
+      src={hovered ? btn.hoverSrc : btn.src}
+      alt=""
+      aria-hidden
+      className="absolute inset-0 w-full h-full object-cover transition-all duration-150"
+      style={{
+        pointerEvents: "none",
+      }}
+    />
+  )
+}
+
+function InteractionOverlay({
+  buttons,
+  onHoverChange,
+  onClick,
+  hoveredItem,
+}: {
+  buttons: Array<{ btn: MainButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  onHoverChange: (id: MainButtonId | null) => void
+  onClick: (id: MainButtonId) => void
+  hoveredItem: MainButtonId | null
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const wasHoveredRef = useRef<MainButtonId | null>(null)
+
+  const checkButtonAtCursor = useCallback(
+    (clientX: number, clientY: number): MainButtonId | null => {
+      if (!containerRef.current) return null
+
+      for (let i = buttons.length - 1; i >= 0; i -= 1) {
+        const { btn, canvas, size } = buttons[i]
+        if (!canvas) continue
+        const alpha = sampleAlpha(containerRef.current, clientX, clientY, canvas, size.w, size.h)
+        if (alpha > ALPHA_THRESHOLD) return btn.id
       }
-      
-      flatten(data)
-      setTranslations(flatTranslations)
-      // Add a 5-second delay before hiding the loading screen
-      setTimeout(() => setLoading(false), 1000)
-    } catch (error) {
-      console.error("Failed to load translations:", error)
-      setLoading(false)
-    }
-  }
 
-  const t = (key: string, fallback: string) => translations[key] || fallback
-
-  if (loading) {
-    return (
-      <div 
-        className="min-h-screen flex justify-center items-center text-white p-8"
-        style={{
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-        }}
-      >
-        <div className="text-center">
-          <div className="text-4xl mb-4">Loading...</div>
-          <div className="text-3xl mb-4">Insert transition gif here</div>
-        </div>
-      </div>
-    )
-  }
+      return null
+    },
+    [buttons],
+  )
 
   return (
-    <div 
-      className="min-h-screen flex justify-center items-center text-white p-8"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+    <div
+      ref={containerRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: "auto", cursor: hoveredItem ? 'grab' : 'auto' }}
+      onMouseMove={(e) => {
+        const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
+        if (hoveredNow !== wasHoveredRef.current) {
+          wasHoveredRef.current = hoveredNow
+          onHoverChange(hoveredNow)
+        }
       }}
-    >
-      <div className="text-center max-w-[800px] w-full">
-        <h1> The theme/design of this page is being decided by a vote in the Discord! </h1>
-        <h1 
-          className="text-4xl mb-2"
-          style={{
-            background: "linear-gradient(90deg, #65d1ff, #8ce6ff)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}
-        >
-          {t("mainpage.title", "Game Selection")}
-        </h1>
-        <p className="text-[#a0a0a0] mb-12 text-xl">
-          {t("mainpage.subtitle", "Choose a game to play")}
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <Link 
-            href="/snake" 
-            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)"
-            }}
-          >
-            <div className="text-6xl mb-4 text-[#4ade80]">🐍</div>
-            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.snake", "Snake")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.snakeDesc", "Example game 1!")}</p>
-          </Link>
-          
-          <Link 
-            href="/pong" 
-            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)"
-            }}
-          >
-            <div className="text-6xl mb-4 text-[#60a5fa]">🏓</div>
-            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.pong", "Pong")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.pongDesc", "Example game 2!")}</p>
-          </Link>
-          
-          <Link 
-            href="/cookbook" 
-            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)"
-            }}
-          >
-            <div className="text-6xl mb-4 text-[#f97316]">📖</div>
-            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.cookbook", "Cookbook")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.cookbookDesc", "Cookbook description!")}</p>
-          </Link>
-          
-          <Link 
-            href="/oshikatsu" 
-            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)"
-            }}
-          >
-            <div className="text-6xl mb-4 text-[#f472b6]">⭐</div>
-            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.oshikatsu", "Oshikatsu")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.oshikatsuDesc", "Mana around the world!")}</p>
-          </Link>
-          
-          <Link 
-            href="/example-game" 
-            className="block p-8 rounded-[20px] text-white no-underline border-2 border-transparent transition-all duration-300 hover:-translate-y-2.5 hover:border-[#45a5e9] hover:shadow-[0_6px_20px_rgba(69,121,233,0.6)]"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)"
-            }}
-          >
-            <div className="text-6xl mb-4 text-[#a855f7]">🎮</div>
-            <h2 className="text-2xl mb-2 text-[#54c7fd]">{t("mainpage.exampleGame", "Example Game")}</h2>
-            <p className="text-[#a0a0a0] text-sm">{t("mainpage.exampleGameDesc", "Template demo for developers")}</p>
-          </Link>
-        </div>
-        
-        <Link 
-          href="/" 
-          className="inline-block px-8 py-3 bg-transparent border-2 border-[#54c7fd] text-white rounded-full cursor-pointer text-base transition-all duration-300 no-underline hover:bg-[#54c7fd]"
-        >
-          {t("mainpage.backButton", "Back to Home")}
-        </Link>
-      </div>
+      onMouseLeave={() => {
+        wasHoveredRef.current = null
+        onHoverChange(null)
+      }}
+      onClick={() => {
+        const hoveredNow = wasHoveredRef.current
+        if (hoveredNow) onClick(hoveredNow)
+      }}
+    />
+  )
+}
+
+export default function MainPage() {
+  const router = useRouter()
+  const [hoveredItem, setHoveredItem] = useState<MainButtonId | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [buttonCanvases, setButtonCanvases] = useState<
+    Array<{ btn: MainButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  >([])
+
+  useEffect(() => {
+    let isMounted = true
+    let loadedCount = 0
+    const canvases: Array<{ btn: MainButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }> = []
+
+    mainButtons.forEach((btn) => {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = `${btn.src}?t=${Date.now()}`
+      img.onload = () => {
+        if (!isMounted) return
+        const canvas = document.createElement("canvas")
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        canvas.getContext("2d")?.drawImage(img, 0, 0)
+        canvases.push({
+          btn,
+          canvas,
+          size: { w: img.naturalWidth, h: img.naturalHeight },
+        })
+        loadedCount += 1
+        if (loadedCount === mainButtons.length) {
+          if (isMounted) setButtonCanvases(canvases)
+        }
+      }
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const handleClick = useCallback(
+    (item: MainButtonId) => {
+      if (item === "settings") {
+        setIsSettingsOpen(true)
+        return
+      }
+      const button = mainButtons.find((btn) => btn.id === item)
+      if (button?.href) router.push(button.href)
+    },
+    [router],
+  )
+
+  return (
+    <div className="relative w-screen h-screen overflow-hidden bg-black">
+      <img
+        src="/images/mainpage/mainpagebackground.png"
+        alt="Main page background"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      <SettingsPopup isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      {mainButtons.map((btn) => (
+        <ButtonLayerVisual key={btn.id} btn={btn} hovered={hoveredItem === btn.id} />
+      ))}
+
+      {buttonCanvases.length > 0 && (
+        <InteractionOverlay
+          buttons={buttonCanvases}
+          onHoverChange={setHoveredItem}
+          onClick={handleClick}
+          hoveredItem={hoveredItem}
+        />
+      )}
     </div>
   )
 }

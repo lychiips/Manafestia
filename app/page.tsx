@@ -104,10 +104,12 @@ function InteractionOverlay({
   buttons,
   onHoverChange,
   onClick,
+  hoveredItem,
 }: {
   buttons: Array<{ btn: LandingButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
   onHoverChange: (id: LandingButtonId | null) => void
   onClick: (id: LandingButtonId) => void
+  hoveredItem: LandingButtonId | null
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wasHoveredRef = useRef<LandingButtonId | null>(null)
@@ -131,7 +133,7 @@ function InteractionOverlay({
     <div
       ref={containerRef}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "auto" }}
+      style={{ pointerEvents: "auto", cursor: hoveredItem ? 'grab' : 'auto' }}
       onMouseMove={(e) => {
         const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
         if (hoveredNow !== wasHoveredRef.current) {
@@ -216,7 +218,7 @@ export default function Home() {
       ))}
 
       {buttonCanvases.length > 0 && (
-        <InteractionOverlay buttons={buttonCanvases} onHoverChange={setHoveredItem} onClick={handleClick} />
+        <InteractionOverlay buttons={buttonCanvases} onHoverChange={setHoveredItem} onClick={handleClick} hoveredItem={hoveredItem} />
       )}
     </div>
   )
