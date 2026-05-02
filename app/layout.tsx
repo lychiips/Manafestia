@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { MusicProvider } from '@/components/background-music'
+import { LanguageProvider } from '@/components/language-context'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -37,8 +39,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <LanguageProvider>
+          <MusicProvider>
+            {children}
+            {process.env.NODE_ENV === 'production' && <Analytics />}
+          </MusicProvider>
+        </LanguageProvider>
       </body>
     </html>
   )

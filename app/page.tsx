@@ -1,17 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { SettingsPopup } from "@/components/settings-popup"
+import { useLanguage } from "@/components/language-context"
 
 export default function Home() {
-  const [currentLang, setCurrentLang] = useState("en")
+  const { currentLang } = useLanguage()
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translationsLoaded, setTranslationsLoaded] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLanguage") || "en"
-    setCurrentLang(savedLang)
-    loadTranslations(savedLang)
-  }, [])
+    loadTranslations(currentLang)
+  }, [currentLang])
 
   const loadTranslations = async (lang: string) => {
     try {
@@ -39,19 +40,10 @@ export default function Home() {
       setTranslations({
         "landing.title": "Hibachi Mana 2026 Birthday",
         "landing.subtitle": "Happy birthday!",
-        "landing.selectLanguage": "Select Language",
-        "landing.english": "English",
-        "landing.japanese": "Japanese",
         "landing.startButton": "Start!"
       })
       setTranslationsLoaded(true)
     }
-  }
-
-  const handleLanguageChange = (lang: string) => {
-    setCurrentLang(lang)
-    localStorage.setItem("selectedLanguage", lang)
-    loadTranslations(lang)
   }
 
   const t = (key: string, fallback: string) => translations[key] || fallback
@@ -69,6 +61,25 @@ export default function Home() {
            backgroundRepeat: "no-repeat",
            backgroundAttachment: "fixed"
          }}>
+      
+      {/* Settings Button */}
+      <button
+        onClick={() => setIsSettingsOpen(true)}
+        className="fixed top-6 right-6 z-30 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all duration-300 hover:scale-110"
+        style={{
+          background: "linear-gradient(90deg, #6fd9ff, #6fd9ff)",
+          boxShadow: "0 4px 15px rgba(111, 217, 255, 0.4)",
+          color: "black"
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 6px 20px rgba(111, 217, 255, 0.6)"}
+        onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 4px 15px rgba(111, 217, 255, 0.4)"}
+        aria-label="Open settings"
+      >
+        ⚙️
+      </button>
+
+      {/* Settings Popup */}
+      <SettingsPopup isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       
       {/* Decorative circles */}
       <div className="fixed w-[200px] h-[200px] rounded-full -top-[100px] -left-[100px] -z-10"
@@ -96,30 +107,6 @@ export default function Home() {
         <p className="text-[#a0a0a0] mb-8 text-lg">
           {t("landing.subtitle", "")}
         </p>
-        
-        <div className="mb-8">
-          <label className="block mb-4 text-[#ccc]">
-            {t("landing.selectLanguage", "")}
-          </label>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => handleLanguageChange("en")}
-              className={`px-6 py-3 border-2 border-[#6fd9ff] rounded-[10px] text-white cursor-pointer transition-all duration-300 ${
-                currentLang === "en" ? "bg-[#6fd9ff]" : "bg-transparent hover:bg-[rgba(111, 217, 255, 0.2)]"
-              }`}
-            >
-              {t("landing.english", "")}
-            </button>
-            <button
-              onClick={() => handleLanguageChange("jp")}
-              className={`px-6 py-3 border-2 border-[#6fd9ff] rounded-[10px] text-white cursor-pointer transition-all duration-300 ${
-                currentLang === "jp" ? "bg-[#6fd9ff]" : "bg-transparent hover:bg-[rgba(111, 217, 255, 0.2)]"
-              }`}
-            >
-              {t("landing.japanese", "")}
-            </button>
-          </div>
-        </div>
         
         <button
           onClick={() => window.location.href = "/main"}
