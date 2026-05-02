@@ -1,126 +1,223 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { SettingsPopup } from "@/components/settings-popup"
-import { useLanguage } from "@/components/language-context"
 
-export default function Home() {
-  const { currentLang } = useLanguage()
-  const [translations, setTranslations] = useState<Record<string, string>>({})
-  const [translationsLoaded, setTranslationsLoaded] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+type LandingButtonId = "language" | "music" | "start"
 
-  useEffect(() => {
-    loadTranslations(currentLang)
-  }, [currentLang])
+interface LandingButton {
+  id: LandingButtonId
+  src: string
+  hoverSrc: string
+  alt: string
+}
 
-  const loadTranslations = async (lang: string) => {
-    try {
-      const response = await fetch(`/locales/${lang}.json`)
-      const data = await response.json()
-      const flatTranslations: Record<string, string> = {}
-      
-      const flatten = (obj: Record<string, unknown>, prefix = "") => {
-        for (const key in obj) {
-          const fullKey = prefix ? `${prefix}.${key}` : key
-          if (typeof obj[key] === "object" && obj[key] !== null) {
-            flatten(obj[key] as Record<string, unknown>, fullKey)
-          } else {
-            flatTranslations[fullKey] = obj[key] as string
-          }
-        }
+const landingButtons: LandingButton[] = [
+  {
+    id: "language",
+    src: "/images/landinglang.png",
+    hoverSrc: "/images/landinglanghover.png",
+    alt: "Open language settings",
+  },
+  {
+    id: "music",
+    src: "/images/landingmusic.png",
+    hoverSrc: "/images/landingmusichover.png",
+    alt: "Open music settings",
+  },
+  {
+    id: "start",
+    src: "/images/landingstart.png",
+    hoverSrc: "/images/landingstarthover.png",
+    alt: "Start the experience",
+  },
+]
+
+const ALPHA_THRESHOLD = 10
+
+function sampleAlpha(
+  container: HTMLElement,
+  clientX: number,
+  clientY: number,
+  canvas: HTMLCanvasElement,
+  naturalWidth: number,
+  naturalHeight: number,
+): number {
+  const rect = container.getBoundingClientRect()
+  const containerAspect = rect.width / rect.height
+  const imageAspect = naturalWidth / naturalHeight
+  let imgW: number, imgH: number, imgX: number, imgY: number
+  let scaleX: number, scaleY: number, offsetX: number, offsetY: number
+
+  if (imageAspect > containerAspect) {
+    // Image is wider than container - crop sides
+    imgH = rect.height
+    imgW = rect.height * imageAspect
+    imgX = rect.left - (imgW - rect.width) / 2
+    imgY = rect.top
+    scaleX = imgW / naturalWidth
+    scaleY = rect.height / naturalHeight
+    offsetX = (imgW - rect.width) / 2 / scaleX
+    offsetY = 0
+  } else {
+    // Image is taller than container - crop top/bottom
+    imgW = rect.width
+    imgH = rect.width / imageAspect
+    imgX = rect.left
+    imgY = rect.top - (imgH - rect.height) / 2
+    scaleX = rect.width / naturalWidth
+    scaleY = imgH / naturalHeight
+    offsetX = 0
+    offsetY = (imgH - rect.height) / 2 / scaleY
+  }
+
+  const px = Math.round(((clientX - rect.left) / rect.width) * naturalWidth + offsetX)
+  const py = Math.round(((clientY - rect.top) / rect.height) * naturalHeight + offsetY)
+
+  if (px < 0 || py < 0 || px >= naturalWidth || py >= naturalHeight) return 0
+
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return 0
+  return ctx.getImageData(px, py, 1, 1).data[3]
+}
+
+interface ButtonLayerProps {
+  btn: LandingButton
+  hovered: boolean
+}
+
+function ButtonLayerVisual({ btn, hovered }: ButtonLayerProps) {
+  return (
+    <img
+      src={hovered ? btn.hoverSrc : btn.src}
+      alt=""
+      aria-hidden
+      className="absolute inset-0 w-full h-full object-cover transition-all duration-150"
+      style={{
+        pointerEvents: "none",
+      }}
+    />
+  )
+}
+
+function InteractionOverlay({
+  buttons,
+  onHoverChange,
+  onClick,
+}: {
+  buttons: Array<{ btn: LandingButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  onHoverChange: (id: LandingButtonId | null) => void
+  onClick: (id: LandingButtonId) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const wasHoveredRef = useRef<LandingButtonId | null>(null)
+
+  const checkButtonAtCursor = useCallback(
+    (clientX: number, clientY: number): LandingButtonId | null => {
+      if (!containerRef.current) return null
+
+      for (const { btn, canvas, size } of buttons) {
+        if (!canvas) continue
+        const alpha = sampleAlpha(containerRef.current, clientX, clientY, canvas, size.w, size.h)
+        if (alpha > ALPHA_THRESHOLD) return btn.id
       }
-      
-      flatten(data)
-      setTranslations(flatTranslations)
-      setTranslationsLoaded(true)
-    } catch (error) {
-      console.error("Failed to load translations:", error)
-      // Fallback to English if loading fails
-      setTranslations({
-        "landing.title": "Hibachi Mana 2026 Birthday",
-        "landing.subtitle": "Happy birthday!",
-        "landing.startButton": "Start!"
-      })
-      setTranslationsLoaded(true)
-    }
-  }
 
-  const t = (key: string, fallback: string) => translations[key] || fallback
-
-  if (!translationsLoaded) {
-    return null
-  }
+      return null
+    },
+    [buttons],
+  )
 
   return (
-    <div className="min-h-screen flex justify-center items-center text-white font-sans"
-         style={{ 
-           backgroundImage: "url('/images/manafestialoadingpage.png')",
-           backgroundSize: "cover",
-           backgroundPosition: "center",
-           backgroundRepeat: "no-repeat",
-           backgroundAttachment: "fixed"
-         }}>
-      
-      {/* Settings Button */}
-      <button
-        onClick={() => setIsSettingsOpen(true)}
-        className="fixed top-6 right-6 z-30 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all duration-300 hover:scale-110"
-        style={{
-          background: "linear-gradient(90deg, #6fd9ff, #6fd9ff)",
-          boxShadow: "0 4px 15px rgba(111, 217, 255, 0.4)",
-          color: "black"
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 6px 20px rgba(111, 217, 255, 0.6)"}
-        onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 4px 15px rgba(111, 217, 255, 0.4)"}
-        aria-label="Open settings"
-      >
-        ⚙️
-      </button>
+    <div
+      ref={containerRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: "auto" }}
+      onMouseMove={(e) => {
+        const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
+        if (hoveredNow !== wasHoveredRef.current) {
+          wasHoveredRef.current = hoveredNow
+          onHoverChange(hoveredNow)
+        }
+      }}
+      onMouseLeave={() => {
+        wasHoveredRef.current = null
+        onHoverChange(null)
+      }}
+      onClick={(e) => {
+        const hoveredNow = checkButtonAtCursor(e.clientX, e.clientY)
+        if (hoveredNow) onClick(hoveredNow)
+      }}
+    />
+  )
+}
 
-      {/* Settings Popup */}
+export default function Home() {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [hoveredItem, setHoveredItem] = useState<LandingButtonId | null>(null)
+  const [buttonCanvases, setButtonCanvases] = useState<
+    Array<{ btn: LandingButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }>
+  >([])
+
+  useEffect(() => {
+    let isMounted = true
+    let loadedCount = 0
+    const canvases: Array<{ btn: LandingButton; canvas: HTMLCanvasElement | null; size: { w: number; h: number } }> = []
+
+    landingButtons.forEach((btn) => {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = `${btn.src}?t=${Date.now()}`
+      img.onload = () => {
+        if (!isMounted) return
+        const canvas = document.createElement("canvas")
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        canvas.getContext("2d")?.drawImage(img, 0, 0)
+        canvases.push({
+          btn,
+          canvas,
+          size: { w: img.naturalWidth, h: img.naturalHeight },
+        })
+        loadedCount++
+        if (loadedCount === landingButtons.length) {
+          canvases.sort(
+            (a, b) => landingButtons.findIndex((entry) => entry.id === a.btn.id) - landingButtons.findIndex((entry) => entry.id === b.btn.id),
+          )
+          if (isMounted) setButtonCanvases(canvases)
+        }
+      }
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const handleClick = useCallback((item: LandingButtonId) => {
+    if (item === "start") {
+      window.location.href = "/main"
+      return
+    }
+    setIsSettingsOpen(true)
+  }, [])
+
+  return (
+    <div className="relative w-screen h-screen overflow-hidden bg-black">
+      <img
+        src="/images/landingbackground.png"
+        alt="Landing background"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
       <SettingsPopup isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-      
-      {/* Decorative circles */}
-      <div className="fixed w-[200px] h-[200px] rounded-full -top-[100px] -left-[100px] -z-10"
-           style={{ background: "rgba(233, 69, 96, 0.1)" }} />
-      <div className="fixed w-[200px] h-[200px] rounded-full -bottom-[100px] -right-[100px] -z-10"
-           style={{ background: "rgba(15, 52, 96, 0.3)" }} />
-      
-      <div className="text-center p-8 rounded-[20px] max-w-[500px] w-[90%]"
-           style={{ 
-             background: "rgba(255, 255, 255, 0.1)", 
-             backdropFilter: "blur(10px)",
-             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)"
-           }}>
-        
-        <h1 className="text-4xl font-bold mb-2"
-            style={{ 
-              background: "linear-gradient(90deg, #6fd9ff, #6fd9ff)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text"
-            }}>
-          {t("landing.title", "")}
-        </h1>
-        
-        <p className="text-[#a0a0a0] mb-8 text-lg">
-          {t("landing.subtitle", "")}
-        </p>
-        
-        <button
-          onClick={() => window.location.href = "/main"}
-          className="px-12 py-4 text-xl font-bold text-white border-none rounded-full cursor-pointer uppercase tracking-widest transition-all duration-300 hover:-translate-y-1"
-          style={{
-            background: "linear-gradient(90deg, #6fd9ff, #6fd9ff)",
-            boxShadow: "0 4px 15px rgba(80, 69, 233, 0.4)"
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 6px 20px rgba(80, 69, 233, 0.6)"}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 4px 15px rgba(80, 69, 233, 0.4)"}
-        >
-          {t("landing.startButton", "")}
-        </button>
-      </div>
+
+      {landingButtons.map((btn) => (
+        <ButtonLayerVisual key={btn.id} btn={btn} hovered={hoveredItem === btn.id} />
+      ))}
+
+      {buttonCanvases.length > 0 && (
+        <InteractionOverlay buttons={buttonCanvases} onHoverChange={setHoveredItem} onClick={handleClick} />
+      )}
     </div>
   )
 }
