@@ -55,6 +55,10 @@ export function SettingsPopup({ isOpen, onClose }: SettingsPopupProps) {
   const handleLanguageChange = (lang: string) => {
     setCurrentLang(lang)
     localStorage.setItem('selectedLanguage', lang)
+    // Reload the page to reflect language changes immediately
+    setTimeout(() => {
+      window.location.reload()
+    }, 100)
   }
 
   const handleVolumeChange = (newVolume: number) => {
